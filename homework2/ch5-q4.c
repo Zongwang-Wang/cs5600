@@ -53,16 +53,6 @@ int main() {
     }
     wait(NULL);
     
-    // Test execvpe() (may not work on all systems)
-    pid = fork();
-    if (pid == 0) {
-        char *args[] = {"ls", "-1", NULL};
-        char *env[] = {NULL};
-        execvpe("ls", args, env);
-        perror("execvpe failed");
-        return 1;
-    }
-    wait(NULL);
     
     printf("\nWhy so many variants?\n");
     printf("- 'l' = arguments as list, 'v' = arguments as array\n");
