@@ -15,7 +15,7 @@ echo "Example 1: Single Long-Running Job (Figure 8.2)"
 echo "=========================================="
 echo "A single job that runs for 200ms, moving down through 3 queues"
 echo
-./mlfq.py -n 3 -q 10 -l 0,200,0 -c
+python3 mlfq.py -n 3 -q 10 -l 0,200,0 -c
 echo
 echo "Press Enter to continue..."
 read
@@ -95,6 +95,10 @@ echo
 ./mlfq.py -n 3 -Q 10,20,40 -l 0,200,0:50,50,0 -c
 echo
 
+echo "=========================================="
+echo "Question 2 Complete!"
+echo "All chapter examples have been reproduced"
+echo "=========================================="
 echo "=========================================="
 echo "Question 2 Complete!"
 echo "All chapter examples have been reproduced"
