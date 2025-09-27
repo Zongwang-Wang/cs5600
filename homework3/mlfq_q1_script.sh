@@ -20,12 +20,12 @@ do
     
     # Run without solution first to show the problem
     echo "--- Problem Definition ---"
-    ./mlfq.py -j 2 -n 2 -m 20 -M 0 -s $seed
+    python3 mlfq.py -j 2 -n 2 -m 20 -M 0 -s $seed
     
     echo
     echo "--- Execution Trace and Solution ---"
     # Run with -c flag to show the execution trace
-    ./mlfq.py -j 2 -n 2 -m 20 -M 0 -s $seed -c
+    python3 mlfq.py -j 2 -n 2 -m 20 -M 0 -s $seed -c
     
     echo
     echo "Press Enter to continue to next example..."
