@@ -1,6 +1,8 @@
-// ufork.c - uFork implementation (fallback)
+// ufork.c - uFork implementation (fallback) - corrected
 #include "spork.h"
 #include <sys/mman.h>
+#include <errno.h>
+#include <dlfcn.h>
 
 // uFork: Clone process in user space
 pid_t ufork_clone_process(void) {

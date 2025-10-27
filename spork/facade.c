@@ -45,7 +45,3 @@ int facade_analyze_and_spawn(fork_context_t *ctx) {
                             ctx->state_changes, ctx->num_changes);
     }
 }
-        return primer_execute(ctx->exec_path, ctx->exec_argv, environ,
-                            ctx->state_changes, ctx->num_changes);
-    }
-}
