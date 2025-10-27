@@ -1,5 +1,7 @@
-// primer_loader.c - The actual Primer executable
+// primer_loader.c - The actual Primer executable (corrected)
 #include "spork.h"
+#include <fcntl.h>
+#include <errno.h>
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -17,11 +19,26 @@ int main(int argc, char *argv[]) {
     }
     
     int num_changes;
-    read(fd, &num_changes, sizeof(int));
+    if (read(fd, &num_changes, sizeof(int)) < 0) {
+        perror("read");
+        close(fd);
+        return 1;
+    }
     
     process_state_change_t *changes = calloc(num_changes, 
                                              sizeof(process_state_change_t));
-    read(fd, changes, num_changes * sizeof(process_state_change_t));
+    if (!changes) {
+        perror("calloc");
+        close(fd);
+        return 1;
+    }
+    
+    if (read(fd, changes, num_changes * sizeof(process_state_change_t)) < 0) {
+        perror("read");
+        free(changes);
+        close(fd);
+        return 1;
+    }
     
     // Apply state changes
     printf("[Primer] Applying %d state changes\n", num_changes);
@@ -37,27 +54,86 @@ int main(int argc, char *argv[]) {
                 signal(changes[i].data.signal.signum, 
                        changes[i].data.signal.handler);
                 break;
-            // Add more cases as needed
+            case ACTION_NONE:
+            case ACTION_SETENV:
+            case ACTION_CHDIR:
+            case ACTION_SETUID:
+            case ACTION_SETGID:
             default:
                 break;
         }
     }
     
+    free(changes);
+    
     // Read target path
     size_t path_len;
-    read(fd, &path_len, sizeof(size_t));
+    if (read(fd, &path_len, sizeof(size_t)) < 0) {
+        perror("read");
+        close(fd);
+        return 1;
+    }
+    
     char *target_path = malloc(path_len);
-    read(fd, target_path, path_len);
+    if (!target_path) {
+        perror("malloc");
+        close(fd);
+        return 1;
+    }
+    
+    if (read(fd, target_path, path_len) < 0) {
+        perror("read");
+        free(target_path);
+        close(fd);
+        return 1;
+    }
     
     // Read target argv
     int target_argc;
-    read(fd, &target_argc, sizeof(int));
+    if (read(fd, &target_argc, sizeof(int)) < 0) {
+        perror("read");
+        free(target_path);
+        close(fd);
+        return 1;
+    }
+    
     char **target_argv = calloc(target_argc + 1, sizeof(char*));
+    if (!target_argv) {
+        perror("calloc");
+        free(target_path);
+        close(fd);
+        return 1;
+    }
+    
     for (int i = 0; i < target_argc; i++) {
         size_t arg_len;
-        read(fd, &arg_len, sizeof(size_t));
+        if (read(fd, &arg_len, sizeof(size_t)) < 0) {
+            perror("read");
+            for (int j = 0; j < i; j++) free(target_argv[j]);
+            free(target_argv);
+            free(target_path);
+            close(fd);
+            return 1;
+        }
+        
         target_argv[i] = malloc(arg_len);
-        read(fd, target_argv[i], arg_len);
+        if (!target_argv[i]) {
+            perror("malloc");
+            for (int j = 0; j < i; j++) free(target_argv[j]);
+            free(target_argv);
+            free(target_path);
+            close(fd);
+            return 1;
+        }
+        
+        if (read(fd, target_argv[i], arg_len) < 0) {
+            perror("read");
+            for (int j = 0; j <= i; j++) free(target_argv[j]);
+            free(target_argv);
+            free(target_path);
+            close(fd);
+            return 1;
+        }
     }
     target_argv[target_argc] = NULL;
     
