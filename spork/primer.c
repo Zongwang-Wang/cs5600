@@ -1,5 +1,7 @@
-// primer.c - Primer implementation
+// primer.c - Primer implementation (corrected)
 #include "spork.h"
+#include <errno.h>
+#include <fcntl.h>
 
 #define PRIMER_PATH "./primer"
 
@@ -19,22 +21,50 @@ int primer_execute(const char *target_path, char *const argv[],
     }
     
     // Write state changes to file
-    write(fd, &num_changes, sizeof(int));
-    write(fd, changes, num_changes * sizeof(process_state_change_t));
+    if (write(fd, &num_changes, sizeof(int)) < 0) {
+        close(fd);
+        unlink(tmp_file);
+        return -1;
+    }
+    if (write(fd, changes, num_changes * sizeof(process_state_change_t)) < 0) {
+        close(fd);
+        unlink(tmp_file);
+        return -1;
+    }
     
     // Write target path length and path
     size_t path_len = strlen(target_path) + 1;
-    write(fd, &path_len, sizeof(size_t));
-    write(fd, target_path, path_len);
+    if (write(fd, &path_len, sizeof(size_t)) < 0) {
+        close(fd);
+        unlink(tmp_file);
+        return -1;
+    }
+    if (write(fd, target_path, path_len) < 0) {
+        close(fd);
+        unlink(tmp_file);
+        return -1;
+    }
     
     // Write argv
     int argc = 0;
     while (argv[argc]) argc++;
-    write(fd, &argc, sizeof(int));
+    if (write(fd, &argc, sizeof(int)) < 0) {
+        close(fd);
+        unlink(tmp_file);
+        return -1;
+    }
     for (int i = 0; i < argc; i++) {
         size_t arg_len = strlen(argv[i]) + 1;
-        write(fd, &arg_len, sizeof(size_t));
-        write(fd, argv[i], arg_len);
+        if (write(fd, &arg_len, sizeof(size_t)) < 0) {
+            close(fd);
+            unlink(tmp_file);
+            return -1;
+        }
+        if (write(fd, argv[i], arg_len) < 0) {
+            close(fd);
+            unlink(tmp_file);
+            return -1;
+        }
     }
     
     close(fd);
