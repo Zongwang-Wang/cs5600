@@ -1,6 +1,7 @@
-// facade.c - Facade implementation
+// facade.c - Facade implementation (corrected)
 #include "spork.h"
 #include <sys/stat.h>
+#include <errno.h>
 
 extern char **environ;
 
@@ -40,6 +41,10 @@ int facade_analyze_and_spawn(fork_context_t *ctx) {
     } else {
         // Complex case: use Primer
         printf("[Facade] Complex state changes, using Primer\n");
+        return primer_execute(ctx->exec_path, ctx->exec_argv, environ,
+                            ctx->state_changes, ctx->num_changes);
+    }
+}
         return primer_execute(ctx->exec_path, ctx->exec_argv, environ,
                             ctx->state_changes, ctx->num_changes);
     }
